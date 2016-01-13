@@ -63,7 +63,17 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
     @Override
     public void setImageDrawable(Drawable drawable) {
         super.setImageDrawable(drawable);
+
+        if (drawable != null) {
+
+            ViewTreeObserver observer = this.getViewTreeObserver();
+            if (null != observer)
+                observer.addOnGlobalLayoutListener(this);
+
+            requestLayout();
+        }
     }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -116,10 +126,9 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
                     mMidRate = viewHeight / drawableHeight > 1.0f ? 1.0f : viewHeight / drawableHeight;
                     mMaxRate = 1.0f;
                 } else {
-                    mMaxRate = scaleRate;
-                    mMinRate = 1.0f;
-                    mMidRate = (mMaxRate - mMinRate) / 2;
-                    scaleRate = mMinRate;
+                    mMaxRate = scaleRate * 1.5f;
+                    mMinRate = scaleRate;
+                    mMidRate = scaleRate * 0.5f;
                 }
             } else {
                 scaleRate = viewHeight / drawableHeight;
@@ -128,10 +137,9 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
                     mMidRate = viewHeight / drawableWidth > 1.0f ? 1.0f : viewWidth / drawableWidth;
                     mMaxRate = 1.0f;
                 } else {
-                    mMaxRate = scaleRate;
-                    mMinRate = 1.0f;
-                    mMidRate = (mMaxRate - mMinRate) / 2;
-                    scaleRate = mMinRate;
+                    mMaxRate = scaleRate * 1.5f;
+                    mMinRate = scaleRate;
+                    mMidRate = scaleRate * 0.5f;
                 }
             }
 
@@ -326,10 +334,6 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
         setScaleType(ScaleType.MATRIX);
         mMatrix = new Matrix();
         setImageMatrix(mMatrix);
-
-        ViewTreeObserver observer = this.getViewTreeObserver();
-        if (null != observer)
-            observer.addOnGlobalLayoutListener(this);
     }
 
     private RectF getRect(Matrix matrix) {
@@ -406,5 +410,4 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
         return (float) Math.sqrt(values[Matrix.MSCALE_X] * values[Matrix.MSCALE_X]
                 + values[Matrix.MSKEW_Y] * values[Matrix.MSKEW_Y]);
     }
-
 }
