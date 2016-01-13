@@ -7,10 +7,10 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.OverScroller;
 
 import com.hokushin.scaleimageview.animation.AnimationOption;
 import com.hokushin.scaleimageview.animation.FlingAnimator;
@@ -24,6 +24,7 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
     private ScaleDetector mScaleDetector;
     private DragDetector mDragDetector;
+    private GestureDetector gestureDetector;
 //    private RotateDetector mRotateDetector;
 
     private ImageAnimator mImageAnimator;
@@ -40,6 +41,9 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
     private float rightBound;
     private float topBound;
     private float bottomBound;
+
+    private boolean limitScaleMax = false;
+    private boolean limitScaleMin = false;
 
     public ScaleImageView(Context context) {
         super(context);
@@ -71,6 +75,7 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
         if (mScaleDetector.onTouch(e) && !mScaleDetector.isScaling()
                 /*mRotateDetector.onTouch(e) && !mRotateDetector.isRotating()*/) {
             mDragDetector.onTouch(e);
+            gestureDetector.onTouchEvent(e);
         }
 
         int action = MotionEventCompat.getActionMasked(e);
@@ -199,14 +204,14 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
         int viewWidth = getMeasuredWidth();
 
         //Limit max scale rate
-//        if (getScale() * rate >= getMaxScale())
-//            rate = getMaxScale() / getScale();
+        if (getScale() * rate >= getMaxScale() && limitScaleMax)
+            rate = getMaxScale() / getScale();
 
         //Limit min scale rate
-//        if (getScale() * rate <= getMinScale()) {
-//            rate = getMinScale() / getScale();
-//        }
-
+        if (getScale() * rate <= getMinScale() && limitScaleMin) {
+            rate = getMinScale() / getScale();
+        }
+//
         if (rate == 1.0f)
             return;
 
@@ -265,7 +270,51 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
     }
 
+    public boolean isLimitScaleMax() {
+        return limitScaleMax;
+    }
+
+    public void setLimitScaleMax(boolean limitScaleMax) {
+        this.limitScaleMax = limitScaleMax;
+    }
+
+    public boolean isLimitScaleMin() {
+        return limitScaleMin;
+    }
+
+    public void setLimitScaleMin(boolean limitScaleMin) {
+        this.limitScaleMin = limitScaleMin;
+    }
+
     private void initial() {
+
+        gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+
+                AnimationOption option = new AnimationOption();
+                option.setView(ScaleImageView.this);
+                option.setDuration(300);
+                option.setScaleFocusX(MotionEventCompat.getX(e, 0));
+                option.setScaleFocusY(MotionEventCompat.getY(e, 0));
+
+                float nowScale = getScale();
+                option.setSrcRate(nowScale);
+
+                if (nowScale < getMaxScale() && nowScale >= getMidScale())
+                    option.setDstRate(getMaxScale());
+                else if (nowScale < getMidScale())
+                    option.setDstRate(getMidScale());
+                else
+                    option.setDstRate(getMinScale());
+
+                mImageAnimator.animate(option);
+
+                return true;
+            }
+
+        });
 
         mDragDetector = new DragDetector(getContext(), this);
         mScaleDetector = new ScaleDetector(getContext(), this);
@@ -316,7 +365,7 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
         leftBound = rect.width() > viewWidth ? 0 : baseRect.left;
         topBound = rect.height() > viewHeight ? 0 : baseRect.top;
-        rightBound =  rect.width() > viewWidth ? viewWidth : baseRect.right;
+        rightBound = rect.width() > viewWidth ? viewWidth : baseRect.right;
         bottomBound = rect.height() > viewHeight ? viewHeight : baseRect.bottom;
     }
 
@@ -357,4 +406,5 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
         return (float) Math.sqrt(values[Matrix.MSCALE_X] * values[Matrix.MSCALE_X]
                 + values[Matrix.MSKEW_Y] * values[Matrix.MSKEW_Y]);
     }
+
 }

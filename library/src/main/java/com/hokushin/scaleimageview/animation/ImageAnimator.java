@@ -57,8 +57,10 @@ public class ImageAnimator implements Runnable {
         if (isAnimateScale) {
             float scaleRate = srcRate + t * (dstRate - srcRate);
 
-            float scaleFocusX = mOption.getView().getMeasuredWidth() / 2;
-            float scaleFocusY = mOption.getView().getMeasuredHeight() / 2;
+            float scaleFocusX = mOption.getScaleFocusX() == 0 ?
+                    mOption.getView().getMeasuredWidth() / 2 : mOption.getScaleFocusX();
+            float scaleFocusY = mOption.getScaleFocusY() == 0 ?
+                    mOption.getView().getMeasuredHeight() / 2 : mOption.getScaleFocusY();
 
             float scaleDelta = scaleRate / srcRate;
             mOption.setSrcRate(scaleRate);

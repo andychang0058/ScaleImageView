@@ -22,6 +22,27 @@ public class AnimationOption {
     private float velocityY;
     private RectF rect;
 
+    private float scaleFocusX;
+    private float scaleFocusY;
+
+    public float getScaleFocusX() {
+        return scaleFocusX;
+    }
+
+    public AnimationOption setScaleFocusX(float scaleFocusX) {
+        this.scaleFocusX = scaleFocusX;
+        return this;
+    }
+
+    public float getScaleFocusY() {
+        return scaleFocusY;
+    }
+
+    public AnimationOption setScaleFocusY(float scaleFocusY) {
+        this.scaleFocusY = scaleFocusY;
+        return this;
+    }
+
     public float getVelocityX() {
         return velocityX;
     }
