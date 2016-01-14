@@ -7,8 +7,10 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
@@ -88,18 +90,32 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
             gestureDetector.onTouchEvent(e);
         }
 
+        ViewParent parent = getParent();
+
         int action = MotionEventCompat.getActionMasked(e);
         switch (action) {
             case MotionEvent.ACTION_DOWN:
+
+                if (parent != null)
+                    parent.requestDisallowInterceptTouchEvent(true);
+
                 mFlingAnimator.abortFling();
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 mImageAnimator.abortAnimation();
                 break;
             case MotionEvent.ACTION_UP:
+
+                if (parent != null)
+                    parent.requestDisallowInterceptTouchEvent(false);
+
                 resetBoundsIfNeed();
                 break;
             case MotionEvent.ACTION_CANCEL:
+
+                if (parent != null)
+                    parent.requestDisallowInterceptTouchEvent(false);
+
                 resetBoundsIfNeed();
                 break;
         }
@@ -159,12 +175,15 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
     @Override
     public void onDrag(float dx, float dy) {
+        ViewParent parent = this.getParent();
         RectF rect = getRect(mMatrix);
         boolean allowScrollX = rect.width() > getMeasuredWidth();
         boolean allowScrollY = rect.height() > getMeasuredHeight();
 
-        if (!allowScrollX && !allowScrollY)
+        if (!allowScrollX && !allowScrollY) {
+            parent.requestDisallowInterceptTouchEvent(false);
             return;
+        }
 
         boolean touchLeftEdge = rect.left + dx >= leftBound;
         boolean touchRightEdge = rect.right + dx <= rightBound;
@@ -192,6 +211,18 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
         mMatrix.postTranslate(dx, dy);
         setImageMatrix(mMatrix);
+
+        if (parent != null) {
+
+            if (getScale() == getMidScale())
+                parent.requestDisallowInterceptTouchEvent(false);
+            else {
+                if (touchRightEdge || touchLeftEdge)
+                    parent.requestDisallowInterceptTouchEvent(false);
+                else
+                    parent.requestDisallowInterceptTouchEvent(true);
+            }
+        }
     }
 
     @Override
@@ -276,6 +307,10 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
     @Override
     public void onAnimationsEnd() {
 
+    }
+
+    public void resetScale() {
+        onScale(getMidScale(), getMeasuredWidth() / 2, getMeasuredHeight() / 2);
     }
 
     public boolean isLimitScaleMax() {

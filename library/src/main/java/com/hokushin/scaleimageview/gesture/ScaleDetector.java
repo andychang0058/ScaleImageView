@@ -19,6 +19,10 @@ public class ScaleDetector {
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
                 isScaleing = true;
+
+                if (Float.isNaN(detector.getScaleFactor()) || Float.isInfinite(detector.getScaleFactor()))
+                    return false;
+
                 mListener.onScale(detector.getScaleFactor(), detector.getFocusX(), detector.getFocusY());
                 return true;
             }
