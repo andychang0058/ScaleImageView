@@ -46,8 +46,11 @@ public class ScaleDetector {
             case MotionEvent.ACTION_POINTER_DOWN:
                 break;
 
-            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
                 isScaleing = false;
+                break;
+
+            case MotionEvent.ACTION_UP:
                 break;
 
             case MotionEvent.ACTION_CANCEL:
@@ -55,7 +58,10 @@ public class ScaleDetector {
                 break;
         }
 
-        return mScaleDetector.onTouchEvent(event);
+        if (event.getPointerCount() > 1)
+            return mScaleDetector.onTouchEvent(event);
+
+        return true;
     }
 
     public boolean isScaling() {

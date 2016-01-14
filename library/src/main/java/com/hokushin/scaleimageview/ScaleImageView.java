@@ -22,12 +22,12 @@ import com.hokushin.scaleimageview.gesture.DragDetector;
 import com.hokushin.scaleimageview.gesture.OnGesture;
 import com.hokushin.scaleimageview.gesture.ScaleDetector;
 
+
 public class ScaleImageView extends ImageView implements OnGesture, OnAnimationListener, ViewTreeObserver.OnGlobalLayoutListener {
 
     private ScaleDetector mScaleDetector;
     private DragDetector mDragDetector;
     private GestureDetector gestureDetector;
-//    private RotateDetector mRotateDetector;
 
     private ImageAnimator mImageAnimator;
     private FlingAnimator mFlingAnimator;
@@ -84,8 +84,7 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        if (mScaleDetector.onTouch(e) && !mScaleDetector.isScaling()
-                /*mRotateDetector.onTouch(e) && !mRotateDetector.isRotating()*/) {
+        if (mScaleDetector.onTouch(e) && !mScaleDetector.isScaling()) {
             mDragDetector.onTouch(e);
             gestureDetector.onTouchEvent(e);
         }
@@ -104,19 +103,22 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
             case MotionEvent.ACTION_POINTER_DOWN:
                 mImageAnimator.abortAnimation();
                 break;
+            case MotionEvent.ACTION_POINTER_UP:
+                resetRateIfNeed();
+                break;
             case MotionEvent.ACTION_UP:
 
                 if (parent != null)
                     parent.requestDisallowInterceptTouchEvent(false);
 
-                resetBoundsIfNeed();
+//                resetBoundsIfNeed();
                 break;
             case MotionEvent.ACTION_CANCEL:
 
                 if (parent != null)
                     parent.requestDisallowInterceptTouchEvent(false);
 
-                resetBoundsIfNeed();
+                resetRateIfNeed();
                 break;
         }
         return true;
@@ -135,29 +137,10 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
             float scaleRate;
             mMatrix.reset();
 
-            if (drawableWidth >= drawableHeight) {
-                scaleRate = viewWidth / drawableWidth;
-                if (drawableWidth >= viewWidth) {
-                    mMinRate = scaleRate;
-                    mMidRate = viewHeight / drawableHeight > 1.0f ? 1.0f : viewHeight / drawableHeight;
-                    mMaxRate = 1.0f;
-                } else {
-                    mMaxRate = scaleRate * 1.5f;
-                    mMinRate = scaleRate;
-                    mMidRate = scaleRate * 0.5f;
-                }
-            } else {
-                scaleRate = viewHeight / drawableHeight;
-                if (drawableHeight >= viewHeight) {
-                    mMinRate = scaleRate;
-                    mMidRate = viewHeight / drawableWidth > 1.0f ? 1.0f : viewWidth / drawableWidth;
-                    mMaxRate = 1.0f;
-                } else {
-                    mMaxRate = scaleRate * 1.5f;
-                    mMinRate = scaleRate;
-                    mMidRate = scaleRate * 0.5f;
-                }
-            }
+            scaleRate = drawableWidth >= drawableHeight ? viewWidth / drawableWidth : viewHeight / drawableHeight;
+            mMinRate = scaleRate;
+            mMidRate = mMinRate * 2.5f;
+            mMaxRate = mMinRate * 5f;
 
             final float scaledWidth = drawableWidth * scaleRate;
             final float scaledHeight = drawableHeight * scaleRate;
@@ -214,13 +197,14 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
         if (parent != null) {
 
-            if (getScale() == getMidScale())
+            if (AllowParentScroll())
                 parent.requestDisallowInterceptTouchEvent(false);
             else {
-                if (touchRightEdge || touchLeftEdge)
-                    parent.requestDisallowInterceptTouchEvent(false);
-                else
-                    parent.requestDisallowInterceptTouchEvent(true);
+                parent.requestDisallowInterceptTouchEvent(true);
+//                if (touchRightEdge || touchLeftEdge)
+//                    parent.requestDisallowInterceptTouchEvent(false);
+//                else
+//                    parent.requestDisallowInterceptTouchEvent(true);
             }
         }
     }
@@ -294,14 +278,13 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
         mMatrix.postTranslate(dx, dy);
         setImageMatrix(mMatrix);
+
+
+        Log.i(TAG, "scale:" + getScale() + " minScale:" + getMinScale());
     }
 
     @Override
     public void onRotate(float angleDelta) {
-        final float centerX = getMeasuredWidth() / 2;
-        final float centerY = getMeasuredHeight() / 2;
-        mMatrix.postRotate(angleDelta, centerX, centerY);
-        setImageMatrix(mMatrix);
     }
 
     @Override
@@ -329,6 +312,11 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
         this.limitScaleMin = limitScaleMin;
     }
 
+    private boolean AllowParentScroll() {
+        float nowScale = getScale();
+        return nowScale <= getMinScale() * 1.02f && nowScale >= getMinScale() * 0.95f;
+    }
+
     private void initial() {
 
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
@@ -345,12 +333,10 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
                 float nowScale = getScale();
                 option.setSrcRate(nowScale);
 
-                if (nowScale < getMaxScale() && nowScale >= getMidScale())
-                    option.setDstRate(getMaxScale());
-                else if (nowScale < getMidScale())
-                    option.setDstRate(getMidScale());
-                else
+                if (nowScale > getMinScale())
                     option.setDstRate(getMinScale());
+                else
+                    option.setDstRate(getMidScale());
 
                 mImageAnimator.animate(option);
 
@@ -361,7 +347,6 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
 
         mDragDetector = new DragDetector(getContext(), this);
         mScaleDetector = new ScaleDetector(getContext(), this);
-//        mRotateDetector = new RotateDetector(getContext(), this);
 
         mFlingAnimator = new FlingAnimator(getContext(), this, this);
         mImageAnimator = new ImageAnimator(getContext(), this, this);
@@ -408,36 +393,23 @@ public class ScaleImageView extends ImageView implements OnGesture, OnAnimationL
         bottomBound = rect.height() > viewHeight ? viewHeight : baseRect.bottom;
     }
 
-    private void resetBoundsIfNeed() {
+    private void resetRateIfNeed() {
         float scale = getScale();
-//        float angle = getAngle();
 
         AnimationOption option = new AnimationOption();
         option.setView(this);
         option.setDuration(300);
 
-        boolean resetRate = scale > getMaxScale() || scale < getMinScale();
-//        boolean resetAngle = angle != 0;
+        boolean resetRate = scale > getMaxScale() || scale < getMinScale() || AllowParentScroll();
 
         if (resetRate) {
             option.setSrcRate(scale);
             option.setDstRate(scale > getMaxScale() ? getMaxScale() : getMinScale());
         }
 
-//        if (resetAngle) {
-//            float srcAngle = angle;
-//            float dstAngle = angle % 90
-//        }
-
-        if (resetRate /*|| resetAngle*/)
+        if (resetRate)
             mImageAnimator.animate(option);
     }
-
-//    private float getAngle() {
-//        float[] v = new float[9];
-//        mMatrix.getValues(v);
-//        return (float) (Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI));
-//    }
 
     private float getScale() {
         float values[] = new float[9];

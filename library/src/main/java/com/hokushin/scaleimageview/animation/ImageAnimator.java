@@ -6,6 +6,7 @@ import android.view.animation.Interpolator;
 
 import com.hokushin.scaleimageview.gesture.OnGesture;
 
+
 public class ImageAnimator implements Runnable {
 
     private Context mContext;
@@ -45,14 +46,9 @@ public class ImageAnimator implements Runnable {
         float t = interpolate(mStartTime, mOption.getDuration());
         float srcRate = mOption.getSrcRate();
         float dstRate = mOption.getDstRate();
-        float srcAngle = mOption.getSrcAngle();
-        float dstAngle = mOption.getDstAngle();
 
         boolean isAnimateScale = srcRate != dstRate;
-        boolean isAnimateRotate = srcAngle != dstAngle;
-
         boolean isScaleEnd = isAnimateScale ? false : true;
-        boolean isRotateEnd = isAnimateRotate ? false : true;
 
         if (isAnimateScale) {
             float scaleRate = srcRate + t * (dstRate - srcRate);
@@ -67,7 +63,7 @@ public class ImageAnimator implements Runnable {
             mListener.onScale(scaleDelta, scaleFocusX, scaleFocusY);
         }
 
-        if (isScaleEnd && isRotateEnd) {
+        if (isScaleEnd) {
             mIsRunning = false;
             mAnimationListener.onAnimationsEnd();
         } else
