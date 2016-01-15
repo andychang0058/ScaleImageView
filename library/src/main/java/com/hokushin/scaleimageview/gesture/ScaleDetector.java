@@ -20,8 +20,9 @@ public class ScaleDetector {
             public boolean onScale(ScaleGestureDetector detector) {
                 isScaleing = true;
 
-                if (Float.isNaN(detector.getScaleFactor()) || Float.isInfinite(detector.getScaleFactor()))
+                if (Float.isNaN(detector.getScaleFactor()) || Float.isInfinite(detector.getScaleFactor())) {
                     return false;
+                }
 
                 mListener.onScale(detector.getScaleFactor(), detector.getFocusX(), detector.getFocusY());
                 return true;
@@ -41,16 +42,10 @@ public class ScaleDetector {
 
     public boolean onTouch(MotionEvent event) {
         int action = MotionEventCompat.getActionMasked(event);
-
         switch (action) {
-            case MotionEvent.ACTION_POINTER_DOWN:
-                break;
 
             case MotionEvent.ACTION_POINTER_UP:
                 isScaleing = false;
-                break;
-
-            case MotionEvent.ACTION_UP:
                 break;
 
             case MotionEvent.ACTION_CANCEL:
@@ -58,8 +53,9 @@ public class ScaleDetector {
                 break;
         }
 
-        if (event.getPointerCount() > 1)
+        if (event.getPointerCount() > 1) {
             return mScaleDetector.onTouchEvent(event);
+        }
 
         return true;
     }

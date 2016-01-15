@@ -10,7 +10,6 @@ public class DragDetector {
 
     private VelocityTracker mVelocityTracker;
 
-    private Context mContext;
     private OnGesture mListener;
     private boolean isDragging = false;
 
@@ -20,15 +19,10 @@ public class DragDetector {
     private float mMinimumVelocity;
 
     public DragDetector(Context context, OnGesture listener) {
-        this.mContext = context;
         this.mListener = listener;
 
         final ViewConfiguration configuration = ViewConfiguration.get(context);
         mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
-    }
-
-    public boolean isDragging() {
-        return isDragging;
     }
 
     public boolean onTouch(MotionEvent event) {
@@ -37,8 +31,9 @@ public class DragDetector {
 
             case MotionEvent.ACTION_DOWN:
                 mVelocityTracker = VelocityTracker.obtain();
-                if (mVelocityTracker != null)
+                if (mVelocityTracker != null) {
                     mVelocityTracker.addMovement(event);
+                }
 
                 mTouchX = MotionEventCompat.getX(event, 0);
                 mTouchY = MotionEventCompat.getY(event, 0);
@@ -57,11 +52,13 @@ public class DragDetector {
                 mTouchX = x;
                 mTouchY = y;
 
-                if (isDragging)
+                if (isDragging) {
                     mListener.onDrag(dx, dy);
+                }
 
-                if (mVelocityTracker != null )
+                if (mVelocityTracker != null ) {
                     mVelocityTracker.addMovement(event);
+                }
                 break;
 
             case MotionEvent.ACTION_POINTER_UP:

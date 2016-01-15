@@ -65,7 +65,6 @@ public class RotateDetector {
 
                     if (isRotating) {
                         angle = getAngle(Fx, Fy, Sx, Sy, movedFx, movedFy, movedSx, movedSy);
-                        mListener.onRotate(angle);
                         Fx = movedFx;
                         Fy = movedFy;
                         Sx = movedSx;

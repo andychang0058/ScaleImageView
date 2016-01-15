@@ -8,5 +8,4 @@ public interface OnGesture {
 
     void onScale(float rate, float focusX, float focusY);
 
-    void onRotate(float angleDelta);
 }

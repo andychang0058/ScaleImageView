@@ -10,8 +10,6 @@ public class AnimationOption {
 
     private float srcRate;
     private float dstRate;
-    private float srcAngle;
-    private float dstAngle;
 
     private float leftBound;
     private float rightBound;
@@ -115,15 +113,6 @@ public class AnimationOption {
         return this;
     }
 
-    public float getDstAngle() {
-        return dstAngle;
-    }
-
-    public AnimationOption setDstAngle(float dstAngle) {
-        this.dstAngle = dstAngle;
-        return this;
-    }
-
     public int getDuration() {
         return duration;
     }
@@ -148,15 +137,6 @@ public class AnimationOption {
 
     public AnimationOption setDstRate(float dstRate) {
         this.dstRate = dstRate;
-        return this;
-    }
-
-    public float getSrcAngle() {
-        return srcAngle;
-    }
-
-    public AnimationOption setSrcAngle(float srcAngle) {
-        this.srcAngle = srcAngle;
         return this;
     }
 }

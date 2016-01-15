@@ -1,6 +1,5 @@
 package com.hokushin.scaleimageview.animation;
 
-import android.content.Context;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
 
@@ -9,20 +8,14 @@ import com.hokushin.scaleimageview.gesture.OnGesture;
 
 public class ImageAnimator implements Runnable {
 
-    private Context mContext;
     private OnGesture mListener;
-
     private AnimationOption mOption;
-    private OnAnimationListener mAnimationListener;
-
     private long mStartTime;
     private boolean mIsRunning;
     final Interpolator mInterpolator = new AccelerateDecelerateInterpolator();
 
-    public ImageAnimator(Context context, OnGesture listener, OnAnimationListener aListener) {
-        this.mContext = context;
+    public ImageAnimator(OnGesture listener) {
         this.mListener = listener;
-        this.mAnimationListener = aListener;
     }
 
     public void animate(AnimationOption option) {
@@ -36,9 +29,14 @@ public class ImageAnimator implements Runnable {
     public void abortAnimation() {
         if (mIsRunning) {
             mIsRunning = false;
-            if (mOption.getView() != null)
+            if (mOption.getView() != null) {
                 mOption.getView().removeCallbacks(this);
+            }
         }
+    }
+
+    public boolean isAnimationRunning() {
+        return mIsRunning;
     }
 
     @Override
@@ -65,9 +63,9 @@ public class ImageAnimator implements Runnable {
 
         if (isScaleEnd) {
             mIsRunning = false;
-            mAnimationListener.onAnimationsEnd();
-        } else
+        } else {
             mOption.getView().postOnAnimation(this);
+        }
     }
 
     private float interpolate(long startTime, int duration) {
@@ -76,5 +74,4 @@ public class ImageAnimator implements Runnable {
         t = mInterpolator.getInterpolation(t);
         return t;
     }
-
 }

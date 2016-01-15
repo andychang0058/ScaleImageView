@@ -6,21 +6,20 @@ import android.widget.OverScroller;
 
 import com.hokushin.scaleimageview.gesture.OnGesture;
 
+
 public class FlingAnimator implements Runnable {
 
     private OverScroller mScroller;
     private OnGesture mListener;
 
     private AnimationOption mOption;
-    private OnAnimationListener mAnimationListener;
 
     private float startX;
     private float startY;
 
-    public FlingAnimator(Context context, OnGesture listener, OnAnimationListener aListener) {
+    public FlingAnimator(Context context, OnGesture listener) {
         mScroller = new OverScroller(context);
         mListener = listener;
-        mAnimationListener = aListener;
     }
 
     public void fling(AnimationOption option) {
@@ -28,10 +27,10 @@ public class FlingAnimator implements Runnable {
         mOption = option;
         RectF rect = mOption.getRect();
 
-        int maxX = 0;
-        int minX = 0;
-        int maxY = 0;
-        int minY = 0;
+        int maxX;
+        int minX;
+        int maxY;
+        int minY;
         startX = 0;
         startY = 0;
 
@@ -58,16 +57,19 @@ public class FlingAnimator implements Runnable {
     }
 
     public void abortFling() {
-        if (mScroller != null && !mScroller.isFinished())
+        if (mScroller != null && !mScroller.isFinished()) {
             mScroller.forceFinished(true);
-        if (mOption != null && mOption.getView() != null)
+        }
+        if (mOption != null && mOption.getView() != null) {
             mOption.getView().removeCallbacks(this);
+        }
     }
 
     @Override
     public void run() {
-        if (mScroller.isFinished())
+        if (mScroller.isFinished()) {
             return;
+        }
 
         if (mScroller.computeScrollOffset()) {
 
@@ -81,11 +83,6 @@ public class FlingAnimator implements Runnable {
             startX = currX;
             startY = currY;
             mOption.getView().postOnAnimation(this);
-        } else {
-            if (mAnimationListener != null)
-                mAnimationListener.onAnimationsEnd();
         }
-
     }
-
 }
